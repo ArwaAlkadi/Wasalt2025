@@ -11,7 +11,9 @@ import SwiftUI
 struct WasaltApp: App {
     var body: some Scene {
         WindowGroup {
-            RootAppView()
+            SplashView()
         }
     }
-}
+
+    }
+
