@@ -7,12 +7,52 @@
 
 import SwiftUI
 
-struct ArrivalSheet: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
+struct ArrivedSheet: View {
+    
+    @Binding var isPresented: Bool
 
-#Preview {
-    ArrivalSheet()
+    var body: some View {
+        VStack(spacing: 20) {
+
+            Rectangle()
+                .frame(width: 40, height: 5)
+                .foregroundColor(.gray.opacity(0.4))
+                .cornerRadius(3)
+                .padding(.top, 10)
+
+            ZStack {
+                Circle()
+                    .fill(Color(hex: "#ACCF71"))
+                    .frame(width: 220, height: 220)
+
+                Image("metro")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 120)
+            }
+
+            Text("وصلت محطتك!")
+                .font(.system(size: 26, weight: .semibold))
+                .foregroundColor(.white)
+
+            Spacer()
+
+            Button(action: { isPresented = false }) {
+                Text("العودة")
+                    .foregroundColor(.white)
+                    .font(.system(size: 20, weight: .medium))
+                    .padding(.horizontal, 45)
+                    .padding(.vertical, 14)
+                    .background(Color(hex: "#6D7446"))
+                    .cornerRadius(20)
+            }
+            .padding(.bottom, 35)
+
+        }
+        .padding(.horizontal)
+        .frame(maxWidth: .infinity)
+        .frame(height: 460) // ← ارتفاع الشيت
+        .background(Color.black)   // ← الشيت نفسه أسود بالكامل
+        .cornerRadius(30, corners: [.topLeft, .topRight])
+    }
 }
