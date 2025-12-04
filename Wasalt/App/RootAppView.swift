@@ -10,11 +10,35 @@
 import SwiftUI
 
 struct RootAppView: View {
+    
+    // يظهر السبلاش أول مرة فقط
+    @State private var showSplash: Bool = true
+    
+    // نحفظ هل خلص الأونبوردنق ولا لا
+    @AppStorage("didFinishOnboarding") var didFinishOnboarding: Bool = false
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        ZStack {
+            if showSplash {
+                SplashView()
+            } else {
+                if didFinishOnboarding {
+                    MainView()
+                } else {
+                    OnboardingView()
+                }
+            }
+        }
+        .onAppear {
+            // مدة السبلاش
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                withAnimation(.easeInOut) {
+                    showSplash = false
+                }
+            }
+        }
     }
 }
-
 #Preview {
     RootAppView()
 }

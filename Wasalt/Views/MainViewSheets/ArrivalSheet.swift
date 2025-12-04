@@ -1,5 +1,5 @@
 //
-//  ArrivalSheet.swift
+//  ArrivedSheet.swift
 //  Wasalt
 //
 //  Created by Arwa Alkadi on 19/11/2025.
@@ -7,12 +7,93 @@
 
 import SwiftUI
 
-struct ArrivalSheet: View {
+struct ArrivedSheet: View {
+    
+    @Binding var isPresented: Bool
+    @Environment(\.colorScheme) var scheme
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        
+        ZStack {
+            
+            Color.whiteBlack
+                .ignoresSafeArea()
+            
+            VStack(spacing: 10) {
+                
+                Button {
+                    isPresented = false
+                } label: {
+                    HStack {
+                        
+                        ZStack {
+                            Circle()
+                                .foregroundStyle(.mainGreen.opacity(0.5))
+                                .frame(width:30, height: 30)
+                            
+                            Image(systemName: "xmark")
+                                .foregroundStyle(.whiteBlack)
+                                .font(.title3)
+                        }
+                    }
+                    .padding()
+                    
+                    Spacer()
+                }
+                
+                ZStack {
+                    Circle()
+                        .fill(Color.mainGreen)
+                        .frame(width: 220, height: 220)
+                    
+                    Image(scheme == .dark ? "MetroDark" : "MetroLight")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120)
+                }
+                
+                Text("وصلت محطتك!")
+                    .font(.title.bold())
+                    .padding()
+                
+                Button(action: {
+                    isPresented = false
+                }) {
+                    Text("العودة")
+                        .font(.title3.bold())
+                        .foregroundColor(.white)
+                        .frame(width: 200, height: 25)
+                        .padding(.vertical, 15)
+                        .background(Color.secondGreen)
+                        .cornerRadius(25)
+                }
+                .padding(.bottom, 35)
+                
+            }
+            .padding(.horizontal)
+            .frame(maxWidth: .infinity)
+        }
     }
 }
 
+// Preview helper
 #Preview {
-    ArrivalSheet()
+    StatefulPreviewWrapper(false) { value in
+        ArrivedSheet(isPresented: value)
+    }
 }
+
+struct StatefulPreviewWrapper<Value, Content: View>: View {
+    @State var value: Value
+    var content: (Binding<Value>) -> Content
+
+    init(_ value: Value, content: @escaping (Binding<Value>) -> Content) {
+        self._value = State(initialValue: value)
+        self.content = content
+    }
+
+    var body: some View {
+        content($value)
+    }
+}
+

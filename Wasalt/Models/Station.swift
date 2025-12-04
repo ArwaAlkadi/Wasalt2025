@@ -6,10 +6,9 @@
 //
 
 
-
-//بيانات واحداثيات مواقع محطات المترو
-
+//مودل المحطات
 // Models/Place.swift
+
 import Foundation
 import CoreLocation
 

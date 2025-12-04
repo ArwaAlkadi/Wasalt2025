@@ -6,15 +6,6 @@
 //
 
 
-//
-//  MetroLine.swift
-//  Wasalt
-//
-//  Created by Rana Alqubaly on 11/06/1447 AH.
-//
-
-
-
 import Foundation
 import SwiftUI
 

@@ -1,50 +1,46 @@
 import SwiftUI
 import Combine
 
+struct OnboardingPage1 {
+    let lightIcon: String
+    let darkIcon: String
+    let title: String
+    let subtitle: String
+}
+
 class OnboardingViewModel: ObservableObject {
 
-    // Tracks the current page index
     @Published var currentPage: Int = 0
+    
+    // نحفظ قيمة الانتهاء من الأونبوردنق
+    @AppStorage("didFinishOnboarding") var isOnboardingFinished: Bool = false
 
-    // UI will use Environment colorScheme to switch icons/colors automatically
-    @Published var isOnboardingFinished: Bool = false
-
-    // Total number of pages
-    let pages: [OnboardingPage] = [
-        OnboardingPage(
-            lightIcon: "Train",
-            darkIcon: "Train Dark",
-            title: "تنقّل آمن",
-            subtitle: "نسهل تنقّلك داخل المترو بخطوات بسيطة!"
-        ),
-        OnboardingPage(
-            lightIcon: "phone",
-            darkIcon: "Phone Dark",
-            title: "تنبيهات ذكية",
-            subtitle: "ننبّهك بالاهتزاز والومض عند الاقتراب من محطتك"
-        ),
-        OnboardingPage(
-            lightIcon: "Map",
-            darkIcon: "Map Dark",
-            title: "ابدأ رحلتك بثقة",
-            subtitle: "اختر وجهتك، واترك التطبيق يتابع خط سير المترو نيابةً عنك"
-        )
+    let pages: [OnboardingPage1] = [
+        .init(lightIcon: "Train", darkIcon: "Train Dark",
+              title: "تنقّل آمن",
+              subtitle: "نسهل تنقّلك داخل المترو بخطوات بسيطة!"),
+        
+        .init(lightIcon: "phone", darkIcon: "Phone Dark",
+              title: "تنبيهات ذكية",
+              subtitle: "ننبّهك بالاهتزاز والومض عند الاقتراب من محطتك"),
+        
+        .init(lightIcon: "Map", darkIcon: "Map Dark",
+              title: "ابدأ رحلتك بثقة",
+              subtitle: "اختر وجهتك، واترك التطبيق يتابع خط سير المترو")
     ]
 
-    // Go to next page or finish onboarding
     func next() {
-        withAnimation(.easeInOut) {   // ← هنا
+        withAnimation {
             if currentPage < pages.count - 1 {
-                currentPage += 1         // ← هنا يتحرك الرقم داخل animation
+                currentPage += 1
             } else {
                 isOnboardingFinished = true
-       // عند آخر صفحة، يذهب للصفحة الرئيسية
             }
         }
     }
 
     func skip() {
-        withAnimation(.easeInOut) {  // ← هذا optional لكن يعطي smooth
+        withAnimation {
             isOnboardingFinished = true
         }
     }
