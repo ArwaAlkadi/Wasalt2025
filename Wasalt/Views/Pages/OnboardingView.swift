@@ -3,7 +3,7 @@ import SwiftUI
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
     @Environment(\.colorScheme) var colorScheme
-
+    
     var body: some View {
         Group {
             if viewModel.isOnboardingFinished {
@@ -12,13 +12,16 @@ struct OnboardingView: View {
             } else {
                 VStack(spacing: 10) {
                     
+                    // ❗ Hide "تخطي" on last page
                     HStack {
                         Spacer()
-                        Button("تخطي") {
-                            viewModel.skip()
+                        if viewModel.currentPage != viewModel.pages.count - 1 {
+                            Button("تخطي") {
+                                viewModel.skip()
+                            }
+                            .padding(.horizontal, 30)
+                            .foregroundColor(.mainGreen)
                         }
-                        .padding(.horizontal, 30)
-                        .foregroundColor(.mainGreen)
                     }
                     
                     Spacer()
@@ -76,6 +79,7 @@ struct OnboardingView: View {
                             }
                         }
                         
+                        // ❗ Replace next button on last page with "ابدأ"
                         HStack {
                             Spacer()
                             Button(action: {
@@ -86,14 +90,37 @@ struct OnboardingView: View {
                                     .foregroundColor(.mainGreen)
                                     .padding(.trailing, 20)
                                 
+                                if viewModel.currentPage == viewModel.pages.count - 1 {
+                                    Button("ابدأ") {
+                                        viewModel.next()
+                                    }
+                                    .frame(width: 150, height: 47) // ← ارتفاع ثابت يمنع تحريك أي عناصر
+                                    .background(Color(colorScheme == .light ? "GL" : "GD"))
+                                    .foregroundColor(colorScheme == .light ? .white : .black)
+                                    .fontWeight(.bold)
+                                    .cornerRadius(25)
+                                    .padding(.trailing, 120)
+                                    
+                                } else {
+                                    Button(action: {
+                                        viewModel.next()
+                                    }) {
+                                        Image(systemName: "chevron.right.circle.fill")
+                                            .font(.system(size: 40))
+                                            .foregroundColor(.mainGreen)
+                                    }
+                                    .frame(height: 50) // ← نثبت نفس الارتفاع حتى لا تتحرك العناصر
+                                    .padding(.trailing, 20)
+                                }
                             }
+                            
                         }
+                        .padding(.bottom, 20)
+                        
+                        Spacer()
                     }
-                    .padding(.bottom, 20)
-                    
-                    Spacer()
+                    .animation(.easeInOut, value: viewModel.currentPage)
                 }
-                .animation(.easeInOut, value: viewModel.currentPage)
             }
         }
     }
