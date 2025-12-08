@@ -12,7 +12,6 @@ struct OnboardingView: View {
             } else {
                 VStack(spacing: 10) {
                     
-                    // ❗ Hide "تخطي" on last page
                     HStack {
                         Spacer()
                         if viewModel.currentPage != viewModel.pages.count - 1 {
@@ -62,8 +61,8 @@ struct OnboardingView: View {
                     }
                     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                     
-                    // المؤشرات + زر التالي
                     VStack(spacing: 16) {
+                        
                         HStack(spacing: 8) {
                             ForEach(0..<viewModel.pages.count, id: \.self) { dotIndex in
                                 if dotIndex == viewModel.currentPage {
@@ -79,29 +78,25 @@ struct OnboardingView: View {
                             }
                         }
                         
-                        // ❗ Replace next button on last page with "ابدأ"
                         HStack {
-                            Spacer()
-                            Button(action: {
-                                viewModel.next()
-                            }) {
-                                Image(systemName: "chevron.right.circle.fill")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.mainGreen)
-                                    .padding(.trailing, 20)
-                                
-                                if viewModel.currentPage == viewModel.pages.count - 1 {
-                                    Button("ابدأ") {
-                                        viewModel.next()
-                                    }
-                                    .frame(width: 150, height: 47) // ← ارتفاع ثابت يمنع تحريك أي عناصر
-                                    .background(Color(colorScheme == .light ? "GL" : "GD"))
-                                    .foregroundColor(colorScheme == .light ? .white : .black)
-                                    .fontWeight(.bold)
-                                    .cornerRadius(25)
-                                    .padding(.trailing, 120)
+                           
+                            
+                            if viewModel.currentPage == viewModel.pages.count - 1 {
+                                Button(action: {
+                                    viewModel.next()
+                                }) {
+                                    Text("ابدأ")
+                                        .frame(width: 150, height: 47)
+                                        .background(Color(colorScheme == .light ? "GL" : "GD"))
+                                        .foregroundColor(colorScheme == .light ? .white : .black)
+                                        .fontWeight(.bold)
+                                        .cornerRadius(25)
+                                }
+                               
+                            } else {
+                                HStack {
                                     
-                                } else {
+                                    Spacer()
                                     Button(action: {
                                         viewModel.next()
                                     }) {
@@ -109,15 +104,11 @@ struct OnboardingView: View {
                                             .font(.system(size: 40))
                                             .foregroundColor(.mainGreen)
                                     }
-                                    .frame(height: 50) // ← نثبت نفس الارتفاع حتى لا تتحرك العناصر
                                     .padding(.trailing, 20)
                                 }
                             }
-                            
                         }
                         .padding(.bottom, 20)
-                        
-                        Spacer()
                     }
                     .animation(.easeInOut, value: viewModel.currentPage)
                 }
