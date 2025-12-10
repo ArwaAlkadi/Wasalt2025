@@ -34,8 +34,6 @@
 
 /* Main Screen */
 "main.chooseDestination" = "اختر محطتك";
-"main.enableLocationAlert" = "فضلاً فعّل الموقع قبل بدء الرحلة.";
-"main.enableNotificationsAlert" = "فعّل الإشعارات حتى نتمكن من تنبيهك عند الوصول.";
 
 /* Station Sheet */
 "sheet.header" = "أهلاً! 👋🏼 وين ودك تروح؟";
@@ -43,7 +41,8 @@
 "sheet.status.notNearMetro" = "قرب من خط المترو عشان تقدر تبدأ.";
 "sheet.status.noLocation" = "ما نقدر نبدأ: موقعك غير معروف.";
 "sheet.status.chooseDestination" = "اختر محطتك أولاً.";
-"trip.status.alreadyAtDestination" = "أنت بالفعل في محطتك: %@";
+"status.alreadyAtDestination" = "أنت بالفعل في محطتك: %@";
+"lineSupport.notice" = "حالياً ندعم المسار الأصفر فقط — وباقي المسارات جاية قريب!";
 
 /* Tracking Sheet */
 "tracking.eta" = "الوقت المتوقع للوصول: %@ دقيقة";
@@ -60,9 +59,10 @@
 "alert.approaching" = "استعد! قربنا من %@";
 "alert.arrived" = "وصلت إلى %@";
 
-/* Permission Alerts */
+/* Permission Alerts  */
 "permission.location.title" = "فعّل الموقع";
 "permission.location.message" = "التطبيق يحتاج إذن الوصول للموقع لمتابعة رحلتك.";
+"permission.openSettings" = "فتح الإعدادات";
 "permission.notifications.title" = "فعّل الإشعارات";
 "permission.notifications.message" = "فعّل الإشعارات حتى نقدر ننبهك عند الوصول.";
 

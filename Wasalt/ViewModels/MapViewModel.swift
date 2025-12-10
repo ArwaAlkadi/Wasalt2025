@@ -232,8 +232,6 @@ class MapViewModel: ObservableObject {
 
 
 
-
-
 //MARK: - LocationManager → continuously tracks the user’s real GPS location.
 final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
@@ -260,6 +258,53 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
         manager.startUpdatingLocation()
     }
     
+    // MARK: - Geofencing
+    
+    func startTripGeofences(for station: Station) {
+        guard CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) else {
+            print("⚠️ [GeoFence] Monitoring not available")
+            return
+        }
+        
+        stopTripGeofences()
+        
+        UserDefaults.standard.set(station.order, forKey: "currentDestinationOrder")
+        UserDefaults.standard.set(station.name,  forKey: "currentDestinationName")
+        
+        let approachRegion = CLCircularRegion(
+            center: station.coordinate,
+            radius: 2000,                        // 2 كم
+            identifier: "approach_\(station.order)"
+        )
+        approachRegion.notifyOnEntry = true
+        approachRegion.notifyOnExit  = false
+        manager.startMonitoring(for: approachRegion)
+        print("🟡 [GeoFence] Monitoring APPROACH for \(station.name)")
+        
+        let arrivalRegion = CLCircularRegion(
+            center: station.coordinate,
+            radius: 250,
+            identifier: "arrival_\(station.order)"
+        )
+        arrivalRegion.notifyOnEntry = true
+        arrivalRegion.notifyOnExit  = false
+        manager.startMonitoring(for: arrivalRegion)
+        print("🟢 [GeoFence] Monitoring ARRIVAL for \(station.name)")
+    }
+    
+    func stopTripGeofences() {
+        for region in manager.monitoredRegions {
+            if region.identifier.hasPrefix("approach_") || region.identifier.hasPrefix("arrival_") {
+                manager.stopMonitoring(for: region)
+            }
+        }
+        UserDefaults.standard.removeObject(forKey: "currentDestinationOrder")
+        UserDefaults.standard.removeObject(forKey: "currentDestinationName")
+        print("🧹 [GeoFence] Stop trip geofences")
+    }
+    
+    // MARK: - CLLocationManagerDelegate
+    
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         switch status {
         case .authorizedWhenInUse, .authorizedAlways:
@@ -275,5 +320,40 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Location error:", error.localizedDescription)
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+        guard let circular = region as? CLCircularRegion else { return }
+        
+        guard UserDefaults.standard.object(forKey: "currentDestinationOrder") != nil else {
+            print("ℹ️ [GeoFence] Entered \(circular.identifier) but no active trip")
+            return
+        }
+        
+        let destOrder = UserDefaults.standard.integer(forKey: "currentDestinationOrder")
+        let destName  = UserDefaults.standard.string(forKey: "currentDestinationName") ?? ""
+        
+        let notif = LocalNotificationManager.shared
+        
+        if circular.identifier == "approach_\(destOrder)" {
+            print("🟡 [GeoFence] Approaching destination: \(destName)")
+            notif.notifyApproaching(stationName: destName)
+        } else if circular.identifier == "arrival_\(destOrder)" {
+            print("🟢 [GeoFence] Arrived to destination: \(destName)")
+            notif.notifyArrival(stationName: destName)
+        } else {
+            print("ℹ️ [GeoFence] Entered unrelated region: \(circular.identifier)")
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager,
+                         monitoringDidFailFor region: CLRegion?,
+                         withError error: Error) {
+        print("⚠️ [GeoFence] Monitoring failed for region \(region?.identifier ?? "nil"): \(error.localizedDescription)")
+    }
+    
+    func locationManager(_ manager: CLLocationManager,
+                         didStartMonitoringFor region: CLRegion) {
+        print("✅ [GeoFence] Started monitoring: \(region.identifier)")
     }
 }

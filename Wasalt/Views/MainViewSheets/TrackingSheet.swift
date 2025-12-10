@@ -192,7 +192,7 @@ struct TrackingSheet: View {
     let mockVM = MetroTripViewModel(stations: stations)
     
     mockVM.startStation = stations[0]
-    mockVM.selectedDestination = stations[1]
+    mockVM.selectedDestination = stations[6]
     mockVM.currentNearestStation = stations[1]
     mockVM.lastPassedStation = stations[1]
     mockVM.upcomingStations = [

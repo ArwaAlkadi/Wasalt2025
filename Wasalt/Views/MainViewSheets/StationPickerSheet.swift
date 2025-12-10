@@ -53,13 +53,26 @@ struct StationSheetView: View {
                             
                             Rectangle()
                                 .fill(Color.yellow)
-                                .frame(width: 3)
+                                .frame(width: 3, height: 680)
                                 .padding(.leading, 33)
                             
                             VStack(spacing: 16) {
                                 ForEach(stations) { station in
                                     stationRow(for: station)
                                 }
+                                
+                                HStack (spacing: 5){
+                                    Image(systemName: "hourglass")
+                                        .font(.body.bold())
+                                        .padding(.bottom, 20)
+                                        .foregroundStyle(.white)
+
+                                    Text("lineSupport.notice".localized)
+                                        .foregroundStyle(.white)
+                                        .font(.subheadline.bold())
+                                }
+                                .padding(.horizontal)
+                                
                             }
                         }
                     }

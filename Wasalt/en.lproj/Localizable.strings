@@ -1,21 +1,21 @@
-/* 
-  Localizable.strings
+/*
+  Localizable.strings (English)
   Wasalt
-
+ 
   Created by Arwa Alkadi on 08/12/2025.
-  
+ 
 */
 
 /* Stations */
 "station.kafd" = "KAFD";
-"station.ar_rabi" = "Ar Rabi";
-"station.uthman_bin_affan" = "Uthman Bin Affan";
+"station.ar_rabi" = "Al Rabi";
+"station.uthman_bin_affan" = "Othman Bin Affan";
 "station.sabic" = "SABIC";
 "station.pnu1" = "PNU 1";
 "station.pnu2" = "PNU 2";
-"station.airport_t5" = "Airport T5";
-"station.airport_t3_4" = "Airport T3–4";
-"station.airport_t1_2" = "Airport T1–2";
+"station.airport_t5" = "Terminal 5";
+"station.airport_t3_4" = "Terminal 3-4";
+"station.airport_t1_2" = "Terminal 1-2";
 
 /* General */
 "ok" = "OK";
@@ -26,45 +26,45 @@
 "onboarding.next" = "Next";
 "onboarding.done" = "Start!";
 "onboarding.title1" = "Safe Travel";
-"onboarding.subtitle1" = "We make your metro trips simple and effortless!";
+"onboarding.subtitle1" = "We make your metro trips easier with simple steps!";
 "onboarding.title2" = "Smart Alerts";
-"onboarding.subtitle2" = "We notify you with vibration and flash when you're close to your station.";
+"onboarding.subtitle2" = "We notify you with vibration and flash as you approach your station.";
 "onboarding.title3" = "Travel with Confidence";
-"onboarding.subtitle3" = "Choose your destination and let the app track the metro for you.";
+"onboarding.subtitle3" = "Choose your destination and let the app track your metro route.";
 
 /* Main Screen */
 "main.chooseDestination" = "Choose a Station";
-"main.enableLocationAlert" = "Please enable location services before starting your trip.";
-"main.enableNotificationsAlert" = "Please enable notifications so we can notify you upon arrival.";
 
 /* Station Sheet */
-"sheet.header" = "Hi! 👋🏼 Where do you want to go?";
+"sheet.header" = "Hello! 👋🏼 Where would you like to go?";
 "sheet.startTrip" = "Start Trip";
-"sheet.status.notNearMetro" = "Move closer to the metro line to start.";
+"sheet.status.notNearMetro" = "Move closer to the metro line to begin.";
 "sheet.status.noLocation" = "Cannot start: Your location is unknown.";
-"sheet.status.chooseDestination" = "Select your destination first.";
-"trip.status.alreadyAtDestination" = "You are already at your station: %@";
+"sheet.status.chooseDestination" = "Please select your station first.";
+"status.alreadyAtDestination" = "You are already at your station: %@";
+"lineSupport.notice" = "Only the Yellow Line is supported for now — other lines are coming soon!";
 
 /* Tracking Sheet */
-"tracking.eta" = "Estimated time: %@ minutes";
+"tracking.eta" = "Estimated arrival: %@ minutes";
 "tracking.start" = "Start";
 "tracking.destination" = "Destination";
-"tracking.change" = "Change Destination";
+"tracking.change" = "Change Station";
 "tracking.endTrip" = "End Trip";
 
 /* Arrival Sheet */
-"arrival.title" = "You’ve arrived!";
+"arrival.title" = "You've arrived!";
 "arrival.back" = "Back";
 
 /* Alerts (in-app banner) */
-"alert.approaching" = "You’re getting close to %@";
-"alert.arrived" = "You arrived at %@";
+"alert.approaching" = "Get ready! Approaching %@";
+"alert.arrived" = "You’ve arrived at %@";
 
 /* Permission Alerts */
 "permission.location.title" = "Enable Location";
-"permission.location.message" = "The app needs location access to follow your trip.";
+"permission.location.message" = "The app needs location access to track your trip.";
+"permission.openSettings" = "Open Settings";
 "permission.notifications.title" = "Enable Notifications";
-"permission.notifications.message" = "Turn on notifications so we can alert you.";
+"permission.notifications.message" = "Turn on notifications so we can alert you upon arrival.";
 
 /* General Errors */
-"error.unknown" = "Something went wrong. Please try again.";
+"error.unknown" = "An unexpected error occurred. Please try again.";

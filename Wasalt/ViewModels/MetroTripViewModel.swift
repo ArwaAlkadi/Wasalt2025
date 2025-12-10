@@ -1,3 +1,9 @@
+//
+//  MetroTripViewModel.swift
+//  Wasalt
+//
+//  Created by Arwa Alkadi on 19/11/2025.
+//
 import SwiftUI
 import MapKit
 import AVFoundation
@@ -12,7 +18,7 @@ import Combine
  */
 
 
-//MARK:  -MetroTripViewModel → handles trip flow, ETA updates, and arrival logic.
+// MARK: - MetroTripViewModel → handles trip flow, ETA updates, and arrival logic.
 final class MetroTripViewModel: ObservableObject {
     
     private let stations: [Station]
@@ -31,8 +37,10 @@ final class MetroTripViewModel: ObservableObject {
     @Published var activeAlert: MetroAlertType? = nil
     @Published var upcomingStations: [Station] = []
     
-    let nearStationDistance: CLLocationDistance = 500000.0                                                          //Here
-    private let arrivalDistance: CLLocationDistance = 10.0
+    /// الوصول الفعلي للمحطة (≈ 120 م)
+    private let arrivalDistance: CLLocationDistance = 120.0
+    /// بداية «الاقتراب» من المحطة (≈ كم)
+    private let approachingDistance: CLLocationDistance = 500.0
     
     private enum TripDirection { case forward, backward }
     private var tripDirection: TripDirection?
@@ -52,6 +60,7 @@ final class MetroTripViewModel: ObservableObject {
         selectedDestination = station
     }
     
+    // - Start Trip
     func startTrip(userLocation: CLLocation?) {
         guard let dest = selectedDestination else {
             statusText = "sheet.status.chooseDestination".localized
@@ -60,7 +69,7 @@ final class MetroTripViewModel: ObservableObject {
         
         if isChangingDestination {
             guard let baseStation = lastPassedStation ?? startStation else {
-                statusText = "error.unknown".localized
+                statusText = "ما قدرنا نعرف آخر محطة ركبت منها."
                 return
             }
             startStation = baseStation
@@ -71,22 +80,19 @@ final class MetroTripViewModel: ObservableObject {
                 etaMinutes = 0
                 nextStation = nil
                 upcomingStations = []
+                
                 statusText = String(
-                    format: "alert.arrived".localized,
+                    format: "status.alreadyAtDestination".localized,
                     dest.name
                 )
-                showArrivalSheet = true
+                
                 isTracking = false
-                activeAlert = .arrival(stationName: dest.name)
                 notificationManager.cancelTripNotifications()
+                // 👈 لا arrival sheet ولا in-app alert ولا إشعار محلي
                 return
             }
             
-            if dest.order > baseStation.order {
-                tripDirection = .forward
-            } else {
-                tripDirection = .backward
-            }
+            tripDirection = dest.order > baseStation.order ? .forward : .backward
             
             isTracking = true
             showArrivalSheet = false
@@ -97,20 +103,10 @@ final class MetroTripViewModel: ObservableObject {
             
             let fakeLocation = CLLocation(latitude: baseStation.coordinate.latitude,
                                           longitude: baseStation.coordinate.longitude)
-            updateProgress(for: fakeLocation)
             
-            if etaMinutes > 3 {
-                notificationManager.scheduleApproachingNotification(
-                    inMinutes: max(etaMinutes - 3, 1),
-                    stationName: dest.name
-                )
-            }
-            if etaMinutes > 0 {
-                notificationManager.scheduleArrivalNotification(
-                    inMinutes: etaMinutes,
-                    stationName: dest.name
-                )
-            }
+            notificationManager.scheduleLocationNotifications(for: dest)
+            
+            updateProgress(for: fakeLocation)
             return
         }
         
@@ -118,12 +114,9 @@ final class MetroTripViewModel: ObservableObject {
             statusText = "sheet.status.noLocation".localized
             return
         }
-        guard isUserNearAnyStation(userLocation: location) else {
-            statusText = "sheet.status.notNearMetro".localized
-            return
-        }
+        
         guard let startSt = nearestStation(to: location) else {
-            statusText = "error.unknown".localized
+            statusText = "ما قدرنا نحدد أقرب محطة."
             return
         }
         
@@ -136,22 +129,18 @@ final class MetroTripViewModel: ObservableObject {
             etaMinutes = 0
             nextStation = nil
             upcomingStations = []
+            
             statusText = String(
-                format: "trip.status.alreadyAtDestination".localized,
-                  dest.name
+                format: "status.alreadyAtDestination".localized,
+                dest.name
             )
-            showArrivalSheet = true
+            
             isTracking = false
-            activeAlert = .arrival(stationName: dest.name)
             notificationManager.cancelTripNotifications()
             return
         }
         
-        if dest.order > startSt.order {
-            tripDirection = .forward
-        } else {
-            tripDirection = .backward
-        }
+        tripDirection = dest.order > startSt.order ? .forward : .backward
         
         isTracking = true
         showArrivalSheet = false
@@ -159,20 +148,9 @@ final class MetroTripViewModel: ObservableObject {
         didFireArrivalAlert = false
         statusText = ""
         
-        updateProgress(for: location)
+        notificationManager.scheduleLocationNotifications(for: dest)
         
-        if etaMinutes > 3 {
-            notificationManager.scheduleApproachingNotification(
-                inMinutes: max(etaMinutes - 3, 1),
-                stationName: dest.name
-            )
-        }
-        if etaMinutes > 0 {
-            notificationManager.scheduleArrivalNotification(
-                inMinutes: etaMinutes,
-                stationName: dest.name
-            )
-        }
+        updateProgress(for: location)
     }
     
     func userLocationUpdated(_ location: CLLocation?) {
@@ -263,7 +241,6 @@ final class MetroTripViewModel: ObservableObject {
         stationsRemaining = result.stations
         etaMinutes = result.minutes
         nextStation = result.next
-        
         upcomingStations = computeUpcomingStations(from: nearest, to: dest)
         
         let destLocation = CLLocation(latitude: dest.coordinate.latitude,
@@ -271,10 +248,7 @@ final class MetroTripViewModel: ObservableObject {
         let distanceToDest = destLocation.distance(from: location)
         
         if distanceToDest <= arrivalDistance {
-            statusText = String(
-                format: "alert.arrived".localized,
-                dest.name
-            )
+            statusText = "وصلت إلى محطتك \(dest.name)"
             isTracking = false
             showArrivalSheet = true
             upcomingStations = []
@@ -283,41 +257,22 @@ final class MetroTripViewModel: ObservableObject {
                 activeAlert = .arrival(stationName: dest.name)
                 didFireArrivalAlert = true
                 notificationManager.cancelTripNotifications()
-                notificationManager.scheduleArrivalNotification(
-                    inMinutes: 0,
-                    stationName: dest.name
-                )
             }
             return
         }
         
         statusText = ""
         
-        if !didFireApproachingAlert, let direction = tripDirection {
-            var previousOrder: Int?
-            switch direction {
-            case .forward:
-                previousOrder = dest.order - 1
-            case .backward:
-                previousOrder = dest.order + 1
-            }
+        if !didFireApproachingAlert,
+           !didFireArrivalAlert,
+           distanceToDest <= approachingDistance,
+           distanceToDest > arrivalDistance {
             
-            if let prevOrder = previousOrder,
-               prevOrder != dest.order,
-               let prevStation = stations.first(where: { $0.order == prevOrder }),
-               nearest.order == prevStation.order {
-                
-                activeAlert = .approaching(
-                    stationName: dest.name,
-                    etaMinutes: etaMinutes
-                )
-                didFireApproachingAlert = true
-                
-                notificationManager.scheduleApproachingNotification(
-                    inMinutes: 0,
-                    stationName: dest.name
-                )
-            }
+            activeAlert = .approaching(
+                stationName: dest.name,
+                etaMinutes: etaMinutes
+            )
+            didFireApproachingAlert = true
         }
     }
     
@@ -388,17 +343,6 @@ final class MetroTripViewModel: ObservableObject {
         }
     }
     
-    private func isUserNearAnyStation(userLocation: CLLocation) -> Bool {
-        for station in stations {
-            let stLoc = CLLocation(latitude: station.coordinate.latitude,
-                                   longitude: station.coordinate.longitude)
-            if stLoc.distance(from: userLocation) <= nearStationDistance {
-                return true
-            }
-        }
-        return false
-    }
-    
     private func resetProgress(keepDestination: Bool) {
         if !keepDestination {
             selectedDestination = nil
@@ -428,34 +372,31 @@ final class MetroTripViewModel: ObservableObject {
 
 
 
-// MARK:  -InAppAlertManager → manages in-app alerts (banner + vibration + flash).
+// MARK: - InAppAlertManager → manages in-app alerts (banner + vibration + flash)
 final class InAppAlertManager: ObservableObject {
     @Published var isShowingBanner: Bool = false
     @Published var bannerMessage: String = ""
     @Published var isArrival: Bool = false
-
+    
     private var flashTimer: Timer?
     private var isTorchOn: Bool = false
     private var isPatternRunning: Bool = false
-
-    /// مدة تشغيل الفلاش + الاهتزاز (15 ثانية)
-    private let maxPatternDuration: TimeInterval = 5
-
-    /// مدة بقاء البانر على الشاشة قبل إخفائه تلقائياً (60 ثانية)
-    private let bannerAutoDismiss: TimeInterval = 5
-
     
-    // MARK: Public API (يستعملها الـ ViewModel)
+    /// أقصى مدة للنمط (فلاش +/أو اهتزاز)
+    private let maxPatternDuration: TimeInterval = 10
+    /// مدة بقاء البانر قبل الاختفاء التلقائي
+    private let bannerAutoDismiss: TimeInterval = 2 * 60
+        
     func showApproaching(message: String) {
         bannerMessage = message
         isArrival = false
-        showBanner()
+        showBanner(shouldUseFlash: false)
     }
     
     func showArrival(message: String) {
         bannerMessage = message
         isArrival = true
-        showBanner()
+        showBanner(shouldUseFlash: true)
     }
     
     func dismiss() {
@@ -465,36 +406,33 @@ final class InAppAlertManager: ObservableObject {
     }
     
     
-    // MARK: Private Helpers
-    private func showBanner() {
+    private func showBanner(shouldUseFlash: Bool) {
         isShowingBanner = true
-        startPatternVibrationAndFlash()
+        startPatternVibrationAndFlash(useFlash: shouldUseFlash)
         
-        // إخفاء البانر تلقائياً بعد مدة
         DispatchQueue.main.asyncAfter(deadline: .now() + bannerAutoDismiss) { [weak self] in
             guard let self = self, self.isShowingBanner else { return }
             self.dismiss()
         }
     }
     
-    /// تشغيل نمط الاهتزاز + الفلاش كل 0.35 ثانية
-    private func startPatternVibrationAndFlash() {
-        stopPatternVibrationAndFlash()  // إلغاء أي نمط سابق
+    private func startPatternVibrationAndFlash(useFlash: Bool) {
+        stopPatternVibrationAndFlash()
         isPatternRunning = true
         
         flashTimer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { [weak self] _ in
             guard let self = self, self.isPatternRunning else { return }
             self.vibrateOnce()
-            self.toggleTorch()
+            if useFlash {
+                self.toggleTorch()
+            }
         }
         
-        // إيقاف النمط بعد 15 ثانية
         DispatchQueue.main.asyncAfter(deadline: .now() + maxPatternDuration) { [weak self] in
             self?.stopPatternVibrationAndFlash()
         }
     }
     
-    /// إطفاء الفلاش + إيقاف الاهتزاز
     private func stopPatternVibrationAndFlash() {
         isPatternRunning = false
         flashTimer?.invalidate()
@@ -502,20 +440,16 @@ final class InAppAlertManager: ObservableObject {
         setTorch(on: false)
     }
     
-    /// هزة واحدة
     private func vibrateOnce() {
         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
     }
     
-    /// تشغيل/إيقاف الفلاش
     private func toggleTorch() {
         isTorchOn.toggle()
         setTorch(on: isTorchOn)
     }
     
-    /// التحكم بالفلاش الحقيقي
     private func setTorch(on: Bool) {
-        // في السيميوليتر ما فيه كاميرا، فـ guard يحمي من المشاكل
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera,
                                                    for: .video,
                                                    position: .back),
@@ -529,7 +463,7 @@ final class InAppAlertManager: ObservableObject {
             }
             device.unlockForConfiguration()
         } catch {
-            print("Torch Error:", error.localizedDescription)
+            print("Torch error:", error.localizedDescription)
         }
     }
 }
@@ -538,7 +472,6 @@ enum MetroAlertType: Equatable {
     case approaching(stationName: String, etaMinutes: Int)
     case arrival(stationName: String)
 }
-
 
 
 
@@ -558,7 +491,9 @@ final class LocalNotificationManager {
     func requestAuthIfNeeded() {
         UNUserNotificationCenter.current().requestAuthorization(
             options: [.alert, .sound, .badge]
-        ) { _, _ in }
+        ) { granted, error in
+            print("🔔 Notification auth granted? \(granted), error: \(String(describing: error))")
+        }
     }
     
     func cancelTripNotifications() {
@@ -570,21 +505,30 @@ final class LocalNotificationManager {
         )
     }
     
-    func scheduleApproachingNotification(inMinutes minutes: Int, stationName: String) {
-        guard minutes > 0 else { return }
-        
+    func scheduleLocationNotifications(for station: Station) {
+        cancelTripNotifications()
+        scheduleApproachingNotification(for: station)
+        scheduleArrivalNotification(for: station)
+    }
+    
+        private func scheduleApproachingNotification(for station: Station) {
         let content = UNMutableNotificationContent()
         content.title = String(
             format: "alert.approaching".localized,
-            stationName
+            station.name
         )
         content.sound = .default
         
-        let seconds = TimeInterval(minutes * 60)
-        let trigger = UNTimeIntervalNotificationTrigger(
-            timeInterval: max(seconds, 1),
-            repeats: false
+        let center = station.coordinate
+        let region = CLCircularRegion(
+            center: center,
+            radius: 2000,
+            identifier: "approaching_notification"
         )
+        region.notifyOnEntry = true
+        region.notifyOnExit  = false
+        
+        let trigger = UNLocationNotificationTrigger(region: region, repeats: false)
         
         let request = UNNotificationRequest(
             identifier: "approaching_notification",
@@ -592,27 +536,33 @@ final class LocalNotificationManager {
             trigger: trigger
         )
         
-        UNUserNotificationCenter.current().removePendingNotificationRequests(
-            withIdentifiers: ["approaching_notification"]
-        )
-        UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("❌ Approaching notif error:", error.localizedDescription)
+            } else {
+                print("✅ Scheduled APPROACHING location notification for \(station.name)")
+            }
+        }
     }
     
-    func scheduleArrivalNotification(inMinutes minutes: Int, stationName: String) {
+    private func scheduleArrivalNotification(for station: Station) {
         let content = UNMutableNotificationContent()
         content.title = String(
             format: "alert.arrived".localized,
-            stationName
+            station.name
         )
         content.sound = .default
         
-        let clampedMinutes = max(minutes, 0)
-        let seconds = clampedMinutes == 0 ? 1.0 : TimeInterval(clampedMinutes * 60)
-        
-        let trigger = UNTimeIntervalNotificationTrigger(
-            timeInterval: seconds,
-            repeats: false
+        let center = station.coordinate
+        let region = CLCircularRegion(
+            center: center,
+            radius: 120,
+            identifier: "arrival_notification"
         )
+        region.notifyOnEntry = true
+        region.notifyOnExit  = false
+        
+        let trigger = UNLocationNotificationTrigger(region: region, repeats: false)
         
         let request = UNNotificationRequest(
             identifier: "arrival_notification",
@@ -620,9 +570,42 @@ final class LocalNotificationManager {
             trigger: trigger
         )
         
-        UNUserNotificationCenter.current().removePendingNotificationRequests(
-            withIdentifiers: ["arrival_notification"]
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("❌ Arrival notif error:", error.localizedDescription)
+            } else {
+                print("✅ Scheduled ARRIVAL location notification for \(station.name)")
+            }
+        }
+    }
+
+    func notifyApproaching(stationName: String) {
+        let content = UNMutableNotificationContent()
+        content.title = String(format: "alert.approaching".localized, stationName)
+        content.sound = .default
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let req = UNNotificationRequest(
+            identifier: "approaching_notification_geofence",
+            content: content,
+            trigger: trigger
         )
-        UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
+        
+        UNUserNotificationCenter.current().add(req, withCompletionHandler: nil)
+    }
+
+    func notifyArrival(stationName: String) {
+        let content = UNMutableNotificationContent()
+        content.title = String(format: "alert.arrived".localized, stationName)
+        content.sound = .default
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let req = UNNotificationRequest(
+            identifier: "arrival_notification_geofence",
+            content: content,
+            trigger: trigger
+        )
+        
+        UNUserNotificationCenter.current().add(req, withCompletionHandler: nil)
     }
 }

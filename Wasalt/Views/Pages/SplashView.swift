@@ -16,9 +16,9 @@ struct SplashView: View {
     
     private var textName: String {
         if colorScheme == .dark {
-            return isArabic ? "wasaltDark" : "wasaltDarkEn"
+            return  "wasaltDark"
         } else {
-            return isArabic ? "wasalt" : "wasaltEn"
+            return "wasalt"
         }
     }
 
@@ -35,7 +35,11 @@ struct SplashView: View {
                     .frame(width: 80)
                     .opacity(viewModel.showLogo ? 1 : 0)
                     .offset(
-                        x: viewModel.shake ? -10 : (viewModel.moveLeftDown ? -21 : 0),
+                        x: viewModel.shake
+                            ? (isArabic ? 10 : -10)
+                            : (viewModel.moveLeftDown
+                               ? (isArabic ? 21 : -21)              
+                               : 0),
                         y: viewModel.moveLeftDown ? -2 : 0
                     )
                     .animation(
@@ -44,9 +48,7 @@ struct SplashView: View {
                         : .default,
                         value: viewModel.shake
                     )
-                    .padding(.leading, 85)
                     .padding(.vertical, 5)
-
                 if viewModel.showText {
                     Image(textName)
                         .resizable()

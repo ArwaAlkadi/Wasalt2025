@@ -88,6 +88,7 @@ struct MainView: View {
             )
             .presentationDetents([.height(400), .large])
             .presentationDragIndicator(.hidden)
+            .presentationBackgroundInteraction(.enabled)
         }
         
         // MARK: - Tracking Sheet
@@ -100,6 +101,7 @@ struct MainView: View {
             .presentationDetents([.height(460), .height(550)])
             .presentationDragIndicator(.hidden)
             .interactiveDismissDisabled(true)
+            .presentationBackgroundInteraction(.enabled)
         }
         
         // MARK: - Arrival Sheet
@@ -107,6 +109,8 @@ struct MainView: View {
             ArrivedSheet(isPresented: $showArrivalSheet)
                 .presentationDetents([.height(500), .height(500)])
                 .presentationDragIndicator(.hidden)
+                .interactiveDismissDisabled(true)
+                .presentationBackgroundInteraction(.enabled)
         }
         
         // MARK: - Logic
@@ -121,6 +125,12 @@ struct MainView: View {
         }
         .onChange(of: metroVM.isTracking) { isTracking in
             showTrackingSheet = isTracking
+            
+            if isTracking, let dest = metroVM.selectedDestination {
+                locationManager.startTripGeofences(for: dest)
+            } else {
+                locationManager.stopTripGeofences()
+            }
         }
         .onChange(of: metroVM.showArrivalSheet) { arrived in
             if arrived {
