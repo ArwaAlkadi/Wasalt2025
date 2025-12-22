@@ -7,7 +7,7 @@
 */
 
 /* Stations */
-"station.kafd" = "المركز المالي - كافد";
+"station.kafd" = "المركز المالي (كافد)";
 "station.ar_rabi" = "الربيع";
 "station.uthman_bin_affan" = "عثمان بن عفان";
 "station.sabic" = "سابك";
@@ -55,16 +55,21 @@
 "arrival.title" = "وصلت محطتك!";
 "arrival.back" = "رجوع";
 
-/* Alerts (in-app banner) */
+/* Alerts */
 "alert.approaching" = "استعد! قربنا من %@";
 "alert.arrived" = "وصلت إلى %@";
+"alert.wrongDirection.title.noTerminal" = "أنت على الاتجاه المعاكس";
+"alert.wrongDirection.title.withTerminal" = "أنت على الاتجاه المعاكس! اتجه إلى المترو الأصفر المتجه إلى %@";
 
-/* Permission Alerts  */
+/* Permission Alerts */
 "permission.location.title" = "فعّل الموقع";
 "permission.location.message" = "التطبيق يحتاج إذن الوصول للموقع لمتابعة رحلتك.";
 "permission.openSettings" = "فتح الإعدادات";
 "permission.notifications.title" = "فعّل الإشعارات";
 "permission.notifications.message" = "فعّل الإشعارات حتى نقدر ننبهك عند الوصول.";
 
-/* General Errors */
+/* Errors */
 "error.unknown" = "حدث خطأ غير متوقع. حاول مرة أخرى.";
+"trip.error.unknownLastStation" = "ما قدرنا نعرف آخر محطة ركبت منها.";
+"trip.error.nearestStationNotFound" = "ما قدرنا نحدد أقرب محطة.";
+"trip.arrived" = "وصلت إلى محطتك %@";

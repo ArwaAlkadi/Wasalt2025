@@ -13,7 +13,6 @@ struct TrackingSheet: View {
     @Binding var ShowStationSheet: Bool
     @Binding var isPresented: Bool
     @Environment(\.colorScheme) var scheme
-    
     @ObservedObject var metroVM: MetroTripViewModel
     
     var body: some View {
@@ -36,7 +35,7 @@ struct TrackingSheet: View {
                     Spacer()
                 }
                 .padding(.horizontal, 30)
-                .padding(.top, 25)
+                .padding(.top, 10)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
                 VStack(spacing: 5) {
@@ -70,10 +69,13 @@ struct TrackingSheet: View {
                     
                     // MARK: - Simple line if no middle stations
                     if metroVM.middleStations.isEmpty {
-                        Rectangle()
-                            .fill(Color.mainGreen)
-                            .frame(width: 3, height: 30)
-                            .padding(.trailing, 260)
+                        HStack {
+                            Rectangle()
+                                .fill(Color.mainGreen)
+                                .frame(width: 3, height: 30)
+                                .padding(.leading, 68)
+                            Spacer()
+                        }
                     }
                     
                     // MARK: - Middle Stations
@@ -182,6 +184,7 @@ struct TrackingSheet: View {
                     }
                 }
                 .padding(.horizontal)
+                .padding(.bottom, 10)
             }
         }
     }
@@ -192,7 +195,7 @@ struct TrackingSheet: View {
     let mockVM = MetroTripViewModel(stations: stations)
     
     mockVM.startStation = stations[0]
-    mockVM.selectedDestination = stations[6]
+    mockVM.selectedDestination = stations[1]
     mockVM.currentNearestStation = stations[1]
     mockVM.lastPassedStation = stations[1]
     mockVM.upcomingStations = [

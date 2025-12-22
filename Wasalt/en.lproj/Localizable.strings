@@ -14,8 +14,8 @@
 "station.pnu1" = "PNU 1";
 "station.pnu2" = "PNU 2";
 "station.airport_t5" = "Terminal 5";
-"station.airport_t3_4" = "Terminal 3-4";
-"station.airport_t1_2" = "Terminal 1-2";
+"station.airport_t3_4" = "Terminal 3–4";
+"station.airport_t1_2" = "Terminal 1–2";
 
 /* General */
 "ok" = "OK";
@@ -26,7 +26,7 @@
 "onboarding.next" = "Next";
 "onboarding.done" = "Start!";
 "onboarding.title1" = "Safe Travel";
-"onboarding.subtitle1" = "We make your metro trips easier with simple steps!";
+"onboarding.subtitle1" = "We make your metro trips easier with simple steps.";
 "onboarding.title2" = "Smart Alerts";
 "onboarding.subtitle2" = "We notify you with vibration and flash as you approach your station.";
 "onboarding.title3" = "Travel with Confidence";
@@ -36,13 +36,13 @@
 "main.chooseDestination" = "Choose a Station";
 
 /* Station Sheet */
-"sheet.header" = "Hello! 👋🏼 Where would you like to go?";
+"sheet.header" = "Hello!👋🏼 Where would you like to go?";
 "sheet.startTrip" = "Start Trip";
 "sheet.status.notNearMetro" = "Move closer to the metro line to begin.";
-"sheet.status.noLocation" = "Cannot start: Your location is unknown.";
-"sheet.status.chooseDestination" = "Please select your station first.";
+"sheet.status.noLocation" = "Cannot start the trip because your location is unavailable.";
+"sheet.status.chooseDestination" = "Please select a station first.";
 "status.alreadyAtDestination" = "You are already at your station: %@";
-"lineSupport.notice" = "Only the Yellow Line is supported for now — other lines are coming soon!";
+"lineSupport.notice" = "Only the Yellow Line is supported for now. More lines are coming soon.";
 
 /* Tracking Sheet */
 "tracking.eta" = "Estimated arrival: %@ minutes";
@@ -52,19 +52,24 @@
 "tracking.endTrip" = "End Trip";
 
 /* Arrival Sheet */
-"arrival.title" = "You've arrived!";
+"arrival.title" = "You’ve arrived!";
 "arrival.back" = "Back";
 
-/* Alerts (in-app banner) */
+/* Alerts */
 "alert.approaching" = "Get ready! Approaching %@";
-"alert.arrived" = "You’ve arrived at %@";
+"alert.arrived" = "You have arrived at %@";
+"alert.wrongDirection.title.noTerminal" = "Wrong direction detected";
+"alert.wrongDirection.title.withTerminal" = "Wrong direction detected. Take the yellow train heading toward %@";
 
-/* Permission Alerts */
+/* Permissions */
 "permission.location.title" = "Enable Location";
-"permission.location.message" = "The app needs location access to track your trip.";
+"permission.location.message" = "Location access is required to track your trip.";
 "permission.openSettings" = "Open Settings";
 "permission.notifications.title" = "Enable Notifications";
-"permission.notifications.message" = "Turn on notifications so we can alert you upon arrival.";
+"permission.notifications.message" = "Enable notifications so we can alert you upon arrival.";
 
-/* General Errors */
+/* Errors */
 "error.unknown" = "An unexpected error occurred. Please try again.";
+"trip.error.unknownLastStation" = "We couldn’t determine the last station you boarded from.";
+"trip.error.nearestStationNotFound" = "We couldn’t determine the nearest station to your location.";
+"trip.arrived" = "You have arrived at your station: %@";

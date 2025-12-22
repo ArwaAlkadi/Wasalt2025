@@ -51,10 +51,12 @@ struct StationSheetView: View {
                     ScrollView(showsIndicators: false) {
                         ZStack(alignment: .leading) {
                             
-                            Rectangle()
-                                .fill(Color.yellow)
-                                .frame(width: 3, height: 680)
-                                .padding(.leading, 33)
+                            if UIDevice.current.userInterfaceIdiom == .phone {
+                                Rectangle()
+                                    .fill(Color.yellow)
+                                    .frame(width: 3, height: 680)
+                                    .padding(.leading, 33)
+                            }
                             
                             VStack(spacing: 16) {
                                 ForEach(stations) { station in
@@ -71,8 +73,10 @@ struct StationSheetView: View {
                                         .foregroundStyle(.white)
                                         .font(.subheadline.bold())
                                 }
-                                .padding(.horizontal)
-                                
+                                .frame(
+                                    width: 370,
+                                    height: UIDevice.current.userInterfaceIdiom == .pad ? 50 : 40
+                                )
                             }
                         }
                     }
@@ -154,7 +158,7 @@ struct StationSheetView: View {
                     .contentShape(Rectangle())
                     .onTapGesture { metroVM.selectDestination(station) }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity)
             
             Rectangle()
                 .fill(Color.yellow)

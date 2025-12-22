@@ -5,20 +5,11 @@
 //  Created by Rana Alqubaly on 12/06/1447 AH.
 //
 
-
 import Foundation
 import MapKit
 import CoreLocation
 import _MapKit_SwiftUI
 import Combine
-
-
-/*
- 🔴 File Contents | محتوى الكود
-     •    MapViewModel → Manages the map view, metro stations, and route polylines.
-     •    LocationManager → continuously tracks the user’s real GPS location.
- */
-
 
 //MARK: - MapViewModel → Manages the map view, metro stations, and route polylines.
 class MapViewModel: ObservableObject {
@@ -222,138 +213,3 @@ class MapViewModel: ObservableObject {
           return times
       }
   }
-
-
-
-
-
-
-
-
-
-
-//MARK: - LocationManager → continuously tracks the user’s real GPS location.
-final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private let manager = CLLocationManager()
-    
-    @Published var userLocation: CLLocation?
-    
-    override init() {
-        super.init()
-        manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyBest
-        
-        if let modes = Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String],
-           modes.contains("location") {
-            manager.allowsBackgroundLocationUpdates = true
-            manager.pausesLocationUpdatesAutomatically = false
-        }
-    }
-    
-    func requestPermission() {
-        manager.requestWhenInUseAuthorization()
-    }
-    
-    func start() {
-        manager.startUpdatingLocation()
-    }
-    
-    // MARK: - Geofencing
-    
-    func startTripGeofences(for station: Station) {
-        guard CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) else {
-            print("⚠️ [GeoFence] Monitoring not available")
-            return
-        }
-        
-        stopTripGeofences()
-        
-        UserDefaults.standard.set(station.order, forKey: "currentDestinationOrder")
-        UserDefaults.standard.set(station.name,  forKey: "currentDestinationName")
-        
-        let approachRegion = CLCircularRegion(
-            center: station.coordinate,
-            radius: 2000,                        // 2 كم
-            identifier: "approach_\(station.order)"
-        )
-        approachRegion.notifyOnEntry = true
-        approachRegion.notifyOnExit  = false
-        manager.startMonitoring(for: approachRegion)
-        print("🟡 [GeoFence] Monitoring APPROACH for \(station.name)")
-        
-        let arrivalRegion = CLCircularRegion(
-            center: station.coordinate,
-            radius: 250,
-            identifier: "arrival_\(station.order)"
-        )
-        arrivalRegion.notifyOnEntry = true
-        arrivalRegion.notifyOnExit  = false
-        manager.startMonitoring(for: arrivalRegion)
-        print("🟢 [GeoFence] Monitoring ARRIVAL for \(station.name)")
-    }
-    
-    func stopTripGeofences() {
-        for region in manager.monitoredRegions {
-            if region.identifier.hasPrefix("approach_") || region.identifier.hasPrefix("arrival_") {
-                manager.stopMonitoring(for: region)
-            }
-        }
-        UserDefaults.standard.removeObject(forKey: "currentDestinationOrder")
-        UserDefaults.standard.removeObject(forKey: "currentDestinationName")
-        print("🧹 [GeoFence] Stop trip geofences")
-    }
-    
-    // MARK: - CLLocationManagerDelegate
-    
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        switch status {
-        case .authorizedWhenInUse, .authorizedAlways:
-            manager.startUpdatingLocation()
-        default:
-            break
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        userLocation = locations.last
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Location error:", error.localizedDescription)
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        guard let circular = region as? CLCircularRegion else { return }
-        
-        guard UserDefaults.standard.object(forKey: "currentDestinationOrder") != nil else {
-            print("ℹ️ [GeoFence] Entered \(circular.identifier) but no active trip")
-            return
-        }
-        
-        let destOrder = UserDefaults.standard.integer(forKey: "currentDestinationOrder")
-        let destName  = UserDefaults.standard.string(forKey: "currentDestinationName") ?? ""
-        
-        let notif = LocalNotificationManager.shared
-        
-        if circular.identifier == "approach_\(destOrder)" {
-            print("🟡 [GeoFence] Approaching destination: \(destName)")
-            notif.notifyApproaching(stationName: destName)
-        } else if circular.identifier == "arrival_\(destOrder)" {
-            print("🟢 [GeoFence] Arrived to destination: \(destName)")
-            notif.notifyArrival(stationName: destName)
-        } else {
-            print("ℹ️ [GeoFence] Entered unrelated region: \(circular.identifier)")
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager,
-                         monitoringDidFailFor region: CLRegion?,
-                         withError error: Error) {
-        print("⚠️ [GeoFence] Monitoring failed for region \(region?.identifier ?? "nil"): \(error.localizedDescription)")
-    }
-    
-    func locationManager(_ manager: CLLocationManager,
-                         didStartMonitoringFor region: CLRegion) {
-        print("✅ [GeoFence] Started monitoring: \(region.identifier)")
-    }
-}

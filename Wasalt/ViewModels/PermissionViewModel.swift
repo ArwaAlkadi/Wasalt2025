@@ -11,13 +11,6 @@ import MapKit
 import Combine
 import UserNotifications
 
-
-/*
- 🔴 File Contents | محتوى الكود
-     •    PermissionsViewModel → Handles all permission–related logic required for the app to function safely.
- */
-
-
 //MARK: -PermissionsViewModel → Handles all permission–related logic required for the app to function safely.
 final class PermissionsViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     
