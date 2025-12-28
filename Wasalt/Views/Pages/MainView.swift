@@ -6,10 +6,9 @@ struct MainView: View {
 
     @StateObject var vm = MapViewModel()
 
-    @StateObject private var metroVM = MetroTripViewModel(
-        stations: MetroData.yellowLineStations
-    )
-    @StateObject private var locationManager = LocationManager()
+    @StateObject private var locationManager: LocationManager
+    @StateObject private var metroVM: MetroTripViewModel
+
     @StateObject private var permissionsVM = PermissionsViewModel()
     @StateObject private var alertManager = InAppAlertManager()
 
@@ -18,6 +17,15 @@ struct MainView: View {
     @State private var showArrivalSheet: Bool  = false
 
     @Environment(\.colorScheme) var scheme
+
+    init() {
+        let lm = LocationManager()
+        _locationManager = StateObject(wrappedValue: lm)
+        _metroVM = StateObject(wrappedValue: MetroTripViewModel(
+            stations: MetroData.yellowLineStations,
+            locationManager: lm
+        ))
+    }
 
     var body: some View {
         ZStack {
@@ -94,7 +102,7 @@ struct MainView: View {
         .sheet(isPresented: $showTrackingSheet) {
             TrackingSheet(
                 ShowStationSheet: $showStationSheet,
-                isPresented: $showArrivalSheet,
+                isPresented: $showTrackingSheet,
                 metroVM: metroVM
             )
             .presentationDetents([.height(460), .height(550)])
@@ -110,8 +118,8 @@ struct MainView: View {
                 .presentationDragIndicator(.hidden)
                 .interactiveDismissDisabled(true)
                 .presentationBackgroundInteraction(.enabled)
-        }       
-        
+        }
+
         // MARK: - Logic
         .onAppear {
             permissionsVM.refreshPermissions()
@@ -184,8 +192,19 @@ struct MainView: View {
             }
         }
 
-        
-        
+        //  هنا UI تعرف إن الرحلة انتهت وتسكر TrackingSheet
+        .onReceive(locationManager.$tripExpired) { expired in
+            guard expired else { return }
+
+            metroVM.endTripAndReset()
+
+            showTrackingSheet = false
+            showArrivalSheet = false
+            showStationSheet = true
+
+            locationManager.tripExpired = false
+        }
+
         // MARK: - Permission Alerts
         .alert("permission.location.title".localized,
                isPresented: $permissionsVM.showLocationSettingsAlert) {
@@ -208,8 +227,6 @@ struct MainView: View {
         }
     }
 
-    
-    
     // MARK: - Banner View
     private var bannerView: some View {
         HStack {
@@ -240,8 +257,6 @@ struct MainView: View {
         .cornerRadius(16)
     }
 
-   
-
     private var bannerIconName: String {
         switch alertManager.bannerType {
         case .arrival:
@@ -252,13 +267,9 @@ struct MainView: View {
 
         case .wrongDirection:
             return scheme == .dark ?  "warning" : "warning-2"
-
-            
         }
     }
 }
-
-
 
 #Preview {
     MainView()
