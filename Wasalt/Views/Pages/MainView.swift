@@ -5,34 +5,27 @@ import _MapKit_SwiftUI
 struct MainView: View {
 
     @StateObject var vm = MapViewModel()
-
-    @StateObject private var metroVM = MetroTripViewModel(
-        stations: MetroData.yellowLineStations
-    )
+    @StateObject private var metroVM = MetroTripViewModel(stations: MetroData.yellowLineStations)
     @StateObject private var locationManager = LocationManager()
     @StateObject private var permissionsVM = PermissionsViewModel()
     @StateObject private var alertManager = InAppAlertManager()
 
-    @State private var showStationSheet: Bool  = false
+    @State private var showLineSheet: Bool = false // <-- New
     @State private var showTrackingSheet: Bool = false
-    @State private var showArrivalSheet: Bool  = false
+    @State private var showArrivalSheet: Bool = false
 
     @Environment(\.colorScheme) var scheme
 
     var body: some View {
         ZStack {
-
             // MARK: - Map
             Map(position: $vm.mapCamera) {
-
                 UserAnnotation()
 
                 ForEach(vm.allRoutePolylines.indices, id: \.self) { index in
                     let route = vm.allRoutePolylines[index]
-
                     MapPolyline(points: route.points)
                         .stroke(route.line.color, lineWidth: 4)
-
                 }
 
                 ForEach(vm.stations) { station in
@@ -41,15 +34,12 @@ struct MainView: View {
                             Circle()
                                 .fill(stationLineColor(station))
                                 .frame(width: 18, height: 18)
-
                             Circle()
                                 .fill(.white)
                                 .frame(width: 7, height: 7)
                         }
                     }
                 }
-                
-
             }
             .ignoresSafeArea()
 
@@ -62,8 +52,9 @@ struct MainView: View {
 
                 Spacer()
 
+                // MARK: - Choose Line Button
                 Button {
-                    showStationSheet = true
+                    showLineSheet = true
                 } label: {
                     Text("main.chooseDestination".localized)
                         .font(.title3.bold())
@@ -78,13 +69,12 @@ struct MainView: View {
             }
             .padding(.horizontal)
         }
-
-        // MARK: - Station Sheet
-        .sheet(isPresented: $showStationSheet) {
-            StationSheetView(
+        // MARK: - Metro Lines Sheet
+        .sheet(isPresented: $showLineSheet) {
+            MetroLinesSheet(
+                showSheet: $showLineSheet,
                 metroVM: metroVM,
                 permissionsVM: permissionsVM,
-                showSheet: $showStationSheet,
                 getCurrentLocation: { locationManager.userLocation }
             )
             .presentationDetents([.height(400), .large])
@@ -92,10 +82,10 @@ struct MainView: View {
             .presentationBackgroundInteraction(.enabled)
         }
 
-        // MARK: - Tracking Sheet
+        // MARK: - Tracking & Arrival Sheets (unchanged)
         .sheet(isPresented: $showTrackingSheet) {
             TrackingSheet(
-                ShowStationSheet: $showStationSheet,
+                ShowStationSheet: $showLineSheet, // <-- showLineSheet instead
                 isPresented: $showArrivalSheet,
                 metroVM: metroVM
             )
@@ -105,16 +95,15 @@ struct MainView: View {
             .presentationBackgroundInteraction(.enabled)
         }
 
-        // MARK: - Arrival Sheet
         .sheet(isPresented: $showArrivalSheet) {
             ArrivedSheet(isPresented: $showArrivalSheet)
                 .presentationDetents([.height(500), .height(500)])
                 .presentationDragIndicator(.hidden)
                 .interactiveDismissDisabled(true)
                 .presentationBackgroundInteraction(.enabled)
-        }       
-        
-        // MARK: - Logic
+        }
+
+        // MARK: - Permissions & Alerts (unchanged)
         .onAppear {
             permissionsVM.refreshPermissions()
             locationManager.requestPermission()
@@ -163,21 +152,14 @@ struct MainView: View {
             case .approaching(let name, _):
                 let message = String(format: "alert.approaching".localized, name)
                 alertManager.showApproaching(message: message)
-
             case .arrival(let name):
                 let message = String(format: "alert.arrived".localized, name)
                 alertManager.showArrival(message: message)
-
             case .wrongDirection:
                 let terminal = metroVM.correctTerminalName ?? ""
-
                 let msg = terminal.isEmpty
-                ? "alert.wrongDirection.body.noTerminal".localized
-                : String(
-                    format: "alert.wrongDirection.body.withTerminal".localized,
-                    terminal
-                )
-
+                    ? "alert.wrongDirection.body.noTerminal".localized
+                    : String(format: "alert.wrongDirection.body.withTerminal".localized, terminal)
                 alertManager.showWrongDirection(message: msg)
             }
 
@@ -186,8 +168,6 @@ struct MainView: View {
             }
         }
 
-        
-        
         // MARK: - Permission Alerts
         .alert("permission.location.title".localized,
                isPresented: $permissionsVM.showLocationSettingsAlert) {
@@ -210,9 +190,7 @@ struct MainView: View {
         }
     }
 
-    
-    
-    // MARK: - Banner View
+    // MARK: - Banner & Helpers (unchanged)
     private var bannerView: some View {
         HStack {
             HStack {
@@ -220,14 +198,11 @@ struct MainView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 25, height: 25)
-
                 Text(alertManager.bannerMessage)
                     .font(.subheadline.bold())
                     .foregroundStyle(.whiteBlack)
             }
-
             Spacer()
-
             Button {
                 alertManager.dismiss()
             } label: {
@@ -242,23 +217,14 @@ struct MainView: View {
         .cornerRadius(16)
     }
 
-   
-
     private var bannerIconName: String {
         switch alertManager.bannerType {
-        case .arrival:
-            return scheme == .dark ? "ArrivedDark" : "ArrivedLight"
-
-        case .approaching:
-            return scheme == .dark ? "NearbyDark" : "NearbyLight"
-
-        case .wrongDirection:
-            return scheme == .dark ?  "warning" : "warning-2"
-
-            
+        case .arrival: return scheme == .dark ? "ArrivedDark" : "ArrivedLight"
+        case .approaching: return scheme == .dark ? "NearbyDark" : "NearbyLight"
+        case .wrongDirection: return scheme == .dark ? "warning" : "warning-2"
         }
     }
-    
+
     func stationLineColor(_ station: Station) -> Color {
         for line in MetroLine.allCases {
             if line.stations.contains(where: { $0.id == station.id }) {
@@ -267,9 +233,7 @@ struct MainView: View {
         }
         return .gray
     }
-
 }
-
 
 
 #Preview {

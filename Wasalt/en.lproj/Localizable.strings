@@ -125,10 +125,13 @@
 "onboarding.subtitle3" = "Choose your destination and let the app track your metro route.";
 
 /* Main Screen */
-"main.chooseDestination" = "Choose a Station";
+"main.chooseDestination" = "Choose a Line";
+
+/* Metro Sheet */
+"metroLines.header"="Hello!👋🏼 Choose a Line";
 
 /* Station Sheet */
-"sheet.header" = "Hello!👋🏼 Where would you like to go?";
+"sheet.header" = "Where would you like to go?";
 "sheet.startTrip" = "Start Trip";
 "sheet.status.notNearMetro" = "Move closer to the metro line to begin.";
 "sheet.status.noLocation" = "Cannot start the trip because your location is unavailable.";

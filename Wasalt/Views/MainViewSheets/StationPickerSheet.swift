@@ -63,21 +63,8 @@ struct StationSheetView: View {
                                     stationRow(for: station)
                                 }
                                 
-                                HStack (spacing: 5){
-                                    Image(systemName: "hourglass")
-                                        .font(.body.bold())
-                                        .padding(.bottom, 20)
-                                        .foregroundStyle(.white)
-
-                                    Text("lineSupport.notice".localized)
-                                        .foregroundStyle(.white)
-                                        .font(.subheadline.bold())
-                                }
-                                .frame(
-                                    width: 370,
-                                    height: UIDevice.current.userInterfaceIdiom == .pad ? 50 : 40
-                                )
-                            }
+                                
+                           }
                         }
                     }
                 }
